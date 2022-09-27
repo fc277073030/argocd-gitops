@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  description: argocd Project
+  destinations:
+    - name: '*'
+      namespace: '*'
+      server: '*'
+  sourceRepos:
+    - '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: env-dev
+  namespace: argocd
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  description: env-dev Project
+  destinations:
+    - name: '*'
+      namespace: '*'
+      server: '*'
+  sourceRepos:
+    - '*'

@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: fc-cluster-apps
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          # - app: flask-demo
+          - app: gin-demo
+  template:
+    metadata:
+      name: '{{app}}'
+      labels:
+        app: '{{app}}'
+#      annotations:
+#        notifications.argoproj.io/subscribe.app-deployed.mattermost: z6wbfff5pib5ty4myjo91gmhqy
+    spec:
+      project: env-dev  # argocd 的 project
+      source:
+        repoURL: https://gitlab.fc277073030.com/devops/k8s-repo.git
+        targetRevision: HEAD
+        path: './apps/{{app}}/dev'
+      destination:
+        name: ''
+        server: 'https://192.168.7.241:6443'   # 集群地址
+        namespace: env-dev    # app 的部署命名空间
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: false
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 1 # 同步尝试重试失败的次数； 如果小于 0，则无限次尝试
+          backoff:
+            duration: 5s # 同步尝试重试失败的次数； 如果小于 0，则无限次尝试
+            factor: 2 # a factor to multiply the base duration after each failed retry
+            maxDuration: 1m

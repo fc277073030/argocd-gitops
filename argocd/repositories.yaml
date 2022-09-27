@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    argocd.argoproj.io/secret-type: repository
+  name: argocd-gitops
+  namespace: argocd
+stringData:
+  type: git
+  name: argocd-gitops
+  url: https://gitlab.fc277073030.com/devops/argocd-gitops.git
+  username: root
+  password: abcd@123
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    argocd.argoproj.io/secret-type: repository
+  name: k8s-repo
+  namespace: argocd
+stringData:
+  type: git
+  name: k8s-repo
+  url: https://gitlab.fc277073030.com/devops/k8s-repo.git
+  username: root
+  password: abcd@123

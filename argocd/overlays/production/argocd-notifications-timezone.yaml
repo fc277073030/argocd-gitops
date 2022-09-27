@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-notifications-controller
+spec:
+  template:
+    spec:
+      containers:
+        - command:
+            - argocd-notifications
+          name: argocd-notifications-controller
+          env:
+            - name: TZ
+              value: Asia/Shanghai

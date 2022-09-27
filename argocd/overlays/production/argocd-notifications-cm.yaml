@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+data:
+  service.webhook.lcp: |
+    url: https://app.leedarson.com/gateway/robot/webhook/send?yzjtype=0&yzjtoken=b2892c8c39cc4ec489301fe418dcf2b0
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: charset
+        value: utf-8
+  context: |
+    argocdUrl: http://argocd.fc277073030.com
+  template.app-sync-change: |
+    webhook:
+      lcp:
+        method: POST
+        body: |
+          {
+           "context": "continuous-delivery/{{.app.metadata.name}}"
+          }
+  template.app-degraded: |
+    webhook:
+      lcp:
+        method: POST
+        body: |
+          {
+            "msg_type": "interactive",
+            "card": {
+              "config": {
+                "wide_screen_mode": true
+              },
+              "header": {
+                "title": {
+                  "tag": "plain_text",
+                  "content": "ArgoCD同步状态"
+                },
+                "template": "red"
+              },
+              "elements": [{
+                "tag": "markdown",
+                "content": "app名称: {{.app.metadata.name}}\napp同步状态: {{ .app.status.health.status}}\n时间:{{.app.status.operationState.startedAt}}\nURL: [点击跳转ArgoCD]({{.context.argocdUrl}}/applications/{{.app.metadata.name}}?resource=&operation=false)\n"         
+              }]
+            }
+          }
+  trigger.on-deployed: |
+    - description: Application is synced and healthy. Triggered once per commit.
+      oncePer: app.status.sync.revision
+      send: [app-sync-change]  # template names
+      # trigger condition
+      when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+  trigger.on-health-degraded: |
+    - description: Application has degraded
+      send: [app-degraded]
+      when: app.status.health.status == 'Degraded'
+  trigger.on-sync-failed: |
+    - description: Application syncing has failed
+      send: [app-sync-change]  # template names
+      when: app.status.operationState.phase in ['Error', 'Failed']
+  trigger.on-sync-status-unknown: |
+    - description: Application status is 'Unknown'
+      send: [app-sync-change]  # template names
+      when: app.status.sync.status == 'Unknown'
+  trigger.on-sync-succeeded: |
+    - description: Application syncing has succeeded
+      send: [app-sync-change]  # template names
+      when: app.status.operationState.phase in ['Succeeded']
+  subscriptions: |
+    - recipients: [lcp]  # 可能有bug，正常应该是webhook:lcp
+      triggers: [on-sync-failed, on-deployed, on-health-degraded]
